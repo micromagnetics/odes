@@ -20,8 +20,8 @@ DOWNLOAD_URL        = URL
 INSTALL_REQUIRES = ['scipy']
 
 MAJOR = 2
-MINOR = 2
-MICRO = 2
+MINOR = 3
+MICRO = 0
 DEV = True
 
 CLASSIFIERS = [
@@ -30,14 +30,22 @@ CLASSIFIERS = [
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
-        'Topic :: Scientific/Engineering']
+        'Topic :: Scientific/Engineering',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+]
 
 def build_verstring():
     return '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 def build_fverstring():
     if DEV:
-        return build_verstring() + 'dev'
+        return build_verstring() + '.dev0'
     else:
         return build_verstring()
 

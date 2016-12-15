@@ -9,14 +9,39 @@ from scikits.odes._build import cython
 base_path = os.path.abspath(os.path.dirname(__file__))
 
 # Edit following paths if programs are installed differently!
-# paths for LAPACK
 INCL_DIRS_LAPACK = []
 LIB_DIRS_LAPACK  = []
 LIBS_LAPACK      = []
+# Troubleshooting: 
+# when installing sundials, look at output of cmake. If it has:                                             
+#  -- A library with BLAS API not found. Please specify library location.                                               
+#  -- LAPACK requires BLAS                                                                                              
+#  -- A library with LAPACK API not found. Please specify library location.
+# then this scikit will not work ! First make sure you install sundials with BLAS and LAPACK found
+# 
+# eg on ubuntu one needs sudo apt-get install libblas-dev libatlas-base-dev libopenblas-dev liblapack-dev gfortran
+# then cmake output is 
+#  -- A library with BLAS API found.
+#  -- Looking for Fortran cheev
+#  -- Looking for Fortran cheev - found
+#  -- A library with LAPACK API found.
+#  -- Looking for LAPACK libraries... OK
+#  -- Checking if Lapack works... OK
+# You can check CMakeCache.txt to see which libraries are found. It should have output as eg:
+#  //Blas and Lapack libraries
+#  LAPACK_LIBRARIES:STRING=/usr/lib/liblapack.so;/usr/lib/libf77blas.so;/usr/lib/libatlas.so
+#  //Path to a library.
+#  LAPACK_lapack_LIBRARY:FILEPATH=/usr/lib/liblapack.so
+#
+# With above output, you can set the LAPACK directories and libs correctly:
+#INCL_DIRS_LAPACK = ['/usr/include', '/usr/include/atlas']
+#LIB_DIRS_LAPACK  = ['/usr/lib']
+#LIBS_LAPACK      = ['lapack', 'f77blas', 'atlas']
 
 # paths for SUNDIALS
 INCL_DIRS_SUNDIALS = [base_path]
-LIB_DIRS_SUNDIALS  = [base_path, '/usr/lib', '/usr/local/lib/']
+# make sure libsundials_* only occurs in one location on your system !
+LIB_DIRS_SUNDIALS  = [base_path, '/usr/local/lib/', '/usr/lib']
 
 LIBS_SUNDIALS = ['sundials_nvecserial']
 LIBS_IDA      = ['sundials_ida']
@@ -43,6 +68,13 @@ try:
 except ImportError:
     print("pkgconfig module not found, using preset paths")
 
+if "SUNDIALS_INST" in os.environ:
+    LIB_DIRS_SUNDIALS.append(os.path.join(os.environ["SUNDIALS_INST"], "lib"))
+    INCL_DIRS_SUNDIALS.append(os.path.join(os.environ["SUNDIALS_INST"], "include"))
+    print("SUNDIALS installation path set to `{}` via $SUNDIALS_INST.".format(
+        os.environ["SUNDIALS_INST"]))
+else:
+    print("No path for SUNDIALS installation set by $SUNDIALS_INST.")
 
 use_lapack = False
 try:
@@ -59,6 +91,7 @@ try:
             use_lapack = True
         else:
             raise ValueError
+        print('Found LAPACK paths via lapack_opt ...')
 except:
     print('LAPACK was not detected, disabling sundials solvers')
 

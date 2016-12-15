@@ -8,7 +8,7 @@ cdef class IDA_RhsFunction:
                        np.ndarray[DTYPE_t, ndim=1] y,
                        np.ndarray[DTYPE_t, ndim=1] ydot,
                        np.ndarray[DTYPE_t, ndim=1] result,
-                       object userdata = *)
+                       object userdata = *) except? -1
 
 cdef class IDA_WrapRhsFunction(IDA_RhsFunction):
     cdef object _resfn
@@ -20,7 +20,7 @@ cdef class IDA_RootFunction:
                        np.ndarray[DTYPE_t, ndim=1] y,
                        np.ndarray[DTYPE_t, ndim=1] ydot,
                        np.ndarray[DTYPE_t, ndim=1] g,
-                       object userdata = *)
+                       object userdata = *) except? -1
 
 cdef class IDA_WrapRootFunction(IDA_RootFunction):
     cpdef object _rootfn
@@ -32,7 +32,7 @@ cdef class IDA_JacRhsFunction:
                        np.ndarray[DTYPE_t, ndim=1] y,
                        np.ndarray[DTYPE_t, ndim=1] ydot,
                        DTYPE_t cj,
-                       np.ndarray[DTYPE_t, ndim=2] J)
+                       np.ndarray[DTYPE_t, ndim=2] J) except? -1
 
 cdef class IDA_WrapJacRhsFunction(IDA_JacRhsFunction):
     cpdef object _jacfn
@@ -47,13 +47,29 @@ cdef class IDA_ContinuationFunction:
 
 cdef int _res(realtype tt, N_Vector yy, N_Vector yp, N_Vector rr, void *self_obj)
 
+cdef class IDA_ErrHandler:
+    cpdef evaluate(self,
+                   int error_code,
+                   bytes module,
+                   bytes function,
+                   bytes msg,
+                   object user_data = *)
+
+cdef class IDA_WrapErrHandler(IDA_ErrHandler):
+    cpdef object _err_handler
+    cdef int with_userdata
+    cpdef set_err_handler(self, object err_handler)
+
+
 cdef class IDA_data:
-   cdef np.ndarray yy_tmp, yp_tmp, residual_tmp, jac_tmp, g_tmp
-   cdef IDA_RhsFunction res
-   cdef IDA_JacRhsFunction jac
-   cdef IDA_RootFunction rootfn
-   cdef bint parallel_implementation
-   cdef object user_data
+    cdef np.ndarray yy_tmp, yp_tmp, residual_tmp, jac_tmp, g_tmp
+    cdef IDA_RhsFunction res
+    cdef IDA_JacRhsFunction jac
+    cdef IDA_RootFunction rootfn
+    cdef bint parallel_implementation
+    cdef object user_data
+    cdef IDA_ErrHandler err_handler
+    cdef object err_user_data
 
 cdef class IDA:
     cdef N_Vector atol
